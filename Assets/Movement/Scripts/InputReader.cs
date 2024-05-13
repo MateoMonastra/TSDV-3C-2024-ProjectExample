@@ -33,7 +33,7 @@ namespace Movement
         {
             //context.phase == InputActionPhase.Started it's the same as context.started
             if (jumpBehaviour && context.started)
-                jumpBehaviour.Jump();
+                jumpBehaviour.StartCoroutine(jumpBehaviour.JumpCoroutine());
         }
     }
 }

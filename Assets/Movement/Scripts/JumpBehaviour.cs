@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -11,6 +12,7 @@ public class JumpBehaviour : MonoBehaviour
     [SerializeField] private LayerMask floor;
     [SerializeField] private Transform feetPivot;
     private Ray _groundRay;
+    [SerializeField] private float maxFloorAngle = 60f;
 
     private void Reset()
     {
@@ -27,20 +29,13 @@ public class JumpBehaviour : MonoBehaviour
 
         _rigidbody ??= GetComponent<Rigidbody>();
     }
-    
-    public void Jump()
-    {
-        Debug.Log($"{name}: Jumped!");
-        _iWantToJump = true;
-    }
 
-    private void FixedUpdate()
+    public IEnumerator JumpCoroutine()
     {
-        if (_iWantToJump && CanJump())
-        {
-            _rigidbody.AddForce(Vector3.up * force, ForceMode.Impulse);
-            _iWantToJump = false;
-        }
+        if(!CanJump())
+            yield break;
+        yield return new WaitForFixedUpdate();
+        _rigidbody.AddForce(Vector3.up * force, ForceMode.Impulse);
     }
 
     private bool CanJump()
@@ -53,7 +48,9 @@ public class JumpBehaviour : MonoBehaviour
         //I must be at ground level
         if (Physics.Raycast(feetPivot.position, Vector3.down, out var hit, groundedDistance, floor))
         {
-            Vector3.Angle(Vector3.up, hit.normal)
+            var contactAngle = Vector3.Angle(hit.normal, Vector3.up);
+            if (contactAngle >= maxFloorAngle)
+                return false;
             return true;
         }
 
